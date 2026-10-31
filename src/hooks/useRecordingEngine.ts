@@ -69,11 +69,11 @@ export function useRecordingEngine(options: UseRecordingEngineOptions = {}) {
     };
   }, []);
 
-  const requestMicPermission = useCallback(async () => {
+  const requestMicPermission = useCallback(async (options?: { ambientSpeakerMode?: boolean }) => {
     setErrorMessage(null);
     try {
       if (!engineRef.current) return null;
-      return await engineRef.current.initMicrophone();
+      return await engineRef.current.initMicrophone(options);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Microphone access denied';
       setErrorMessage(msg);

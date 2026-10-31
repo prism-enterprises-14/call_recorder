@@ -60,20 +60,32 @@ export class AudioRecordingEngine {
 
   /**
    * Initializes local microphone stream and verifies hardware availability
+   * Supports ambientSpeakerMode for WhatsApp and mobile phone calls to capture both sides on speakerphone without cancellation
    */
-  public async initMicrophone(): Promise<MediaStream> {
+  public async initMicrophone(options?: { ambientSpeakerMode?: boolean }): Promise<MediaStream> {
     this.setState('requesting_permission');
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Audio media devices are not supported in this browser.');
       }
 
+      const audioConstraints: MediaTrackConstraints = options?.ambientSpeakerMode
+        ? {
+            // For speakerphone WhatsApp calls: disable cancellation so incoming speaker voice is captured
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: true,
+            channelCount: { ideal: 2 },
+            sampleRate: { ideal: 48000 },
+          }
+        : {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          };
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
+        audio: audioConstraints,
         video: false,
       });
 
